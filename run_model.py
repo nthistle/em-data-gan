@@ -67,7 +67,7 @@ def train_em_gan(adversarial_optimizer,
     model.adversarial_compile(adversarial_optimizer=adversarial_optimizer,
                               player_optimizers=[gen_opt, disc_opt],
                               loss=loss)
-    
+
     zsamples = np.random.normal(size=(5, latent_dim))
 
     sample_generator = util.h5_block_generator(h5_filename, h5_dataset_path, sample_shape, [1,0,0,1])
@@ -81,7 +81,8 @@ def train_em_gan(adversarial_optimizer,
                         verbose=verbose, callbacks=[sampler],
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
 
-    model.save("gan_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt) + "_" + str(disc_opt) + ".h5")
+    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt) + "_" + str(disc_opt) + ".h5")
+    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt) + "_" + str(disc_opt) + ".h5")
 
 
 def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc_lr):
