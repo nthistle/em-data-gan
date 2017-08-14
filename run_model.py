@@ -1,25 +1,13 @@
 import numpy as np
-import os
 import sys
-from PIL import Image
-from keras.layers import Reshape, Flatten, LeakyReLU, Activation
+from keras.layers import Reshape, Flatten, Activation
 from keras.layers.core import Dense, Dropout
-from keras.layers.convolutional import MaxPooling3D, Conv3D, Conv3DTranspose, UpSampling3D
+from keras.layers.convolutional import Conv3D, Conv3DTranspose, UpSampling3D
 from keras.models import Sequential
 from keras_adversarial import AdversarialModel, simple_gan
 from keras_adversarial import normal_latent_sampling, AdversarialOptimizerSimultaneous
 import util
 from keras.optimizers import Adam
-
-# class debugprint(Callback):
-#
-#     def on_batch_begin(self, batch, logs=None):
-#         print("batch is beginning")
-#         print(logs)
-#
-#     def on_batch_end(self, batch, logs=None):
-#         print("batch is ending")
-#         print(logs)
 
 
 def em_generator(latent_dim, input_shape):
@@ -55,7 +43,9 @@ def train_em_gan(adversarial_optimizer,
                  generator, discriminator, gen_opt, disc_opt,
                  latent_dim,
                  h5_filename, h5_dataset_path, sample_shape,
-                 verbose=1, loss='binary_crossentropy'):
+                 output_directory,
+                 verbose=1, loss='mean_squared_error',
+                 epochs=10, per_epoch=100):
 
     gan = simple_gan(generator, discriminator, normal_latent_sampling((latent_dim,)))
 
@@ -88,24 +78,16 @@ def train_em_gan(adversarial_optimizer,
     def generator_sampler():
         return generator.predict(zsamples)
 
-    sampler = util.SampleEM("/home/thistlethwaiten/testgan",generator_sampler)
+    sampler = util.SampleEM(output_directory,generator_sampler)
 
-    model.fit_generator(sample_generator, 3, 5,
-                        verbose=verbose,callbacks=[sampler],
-                        validation_data=sample_generator, validation_steps=16)
+    model.fit_generator(sample_generator, per_epoch, epochs=epochs,
+                        verbose=verbose, callbacks=[sampler],
+                        validation_data=sample_generator, validation_steps=(per_epoch//5))
 
-    # model = Sequential()
-    # model.add(Conv3D(32, (5,5,3), input_shape=(24,24,12,1), activation="relu"))
-    # model.add(MaxPooling3D((2,2,2)))
-    # model.add(Conv3D(16, (3,3,3), input_shape=(10,10,5,32), activation="relu"))
-    # model.add(Dropout(0.4))
-    # model.add(Dense(10, activation="relu"))
-    # model.add(Dense(1))
-    # model.add(Activation("sigmoid"))
-    # print(model.summary())
+    model.save("gan_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt) + "_" + str(disc_opt) + ".h5")
 
 
-def main():
+def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc_lr):
     latent_dim = 300
     input_shape = (24, 24, 12)
 
@@ -115,12 +97,19 @@ def main():
     #print(generator.summary())
     train_em_gan(AdversarialOptimizerSimultaneous(),
                  generator, discriminator,
-                 Adam(1e-4, decay=1e-4),
-                 Adam(1e-3, decay=1e-4),
+                 Adam(gen_lr),
+                 Adam(disc_lr),
                  latent_dim,
-                 "/home/thistlethwaiten/cremi-data/sample_A_20160501.hdf","/volumes/raw", input_shape,
-                 verbose=0)
+                 file_source,"/volumes/raw", input_shape,
+                 output_directory,
+                 verbose=verbose)
 
 
 if __name__=="__main__":
-    main()
+    if(len(sys.argv)<6):
+        print("Usage: python run_model.py [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [gen_lr] [disc_lr]")
+        print("(gen_lr and disc_lr are optional)")
+    else:
+        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5],
+             float(sys.argv[6]) if len(sys.argv)>6 else 1e-4,
+             float(sys.argv[7]) if len(sys.argv)>7 else 1e-3)
