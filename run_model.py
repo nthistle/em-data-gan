@@ -45,7 +45,7 @@ def train_em_gan(adversarial_optimizer,
                  h5_filename, h5_dataset_path, sample_shape,
                  output_directory,
                  verbose=1, loss='mean_squared_error',
-                 epochs=10, per_epoch=100):
+                 epochs=10, per_epoch=100, id="em-gan"):
 
     gan = simple_gan(generator, discriminator, normal_latent_sampling((latent_dim,)))
 
@@ -81,8 +81,8 @@ def train_em_gan(adversarial_optimizer,
                         verbose=verbose, callbacks=[sampler],
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
 
-    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr.value()) + "_" + str(disc_opt.lr.value()) + ".h5")
-    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr.value()) + "_" + str(disc_opt.lr.value()) + ".h5")
+    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + id + ".h5")
+    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + id +".h5")
 
 
 def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr):
@@ -99,7 +99,8 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr
                  latent_dim,
                  file_source,"/volumes/raw", input_shape,
                  output_directory,
-                 verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss)
+                 verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
+                 id=(str(gen_lr) + "_" + str(disc_lr)))
 
 
 if __name__=="__main__":
