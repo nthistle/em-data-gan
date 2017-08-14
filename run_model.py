@@ -85,7 +85,7 @@ def train_em_gan(adversarial_optimizer,
     generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr) + "_" + str(disc_opt.lr) + ".h5")
 
 
-def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc_lr):
+def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr):
     latent_dim = 300
     input_shape = (24, 24, 12)
 
@@ -99,14 +99,14 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc
                  latent_dim,
                  file_source,"/volumes/raw", input_shape,
                  output_directory,
-                 verbose=verbose, epochs=epochs, per_epoch=per_epoch)
+                 verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss)
 
 
 if __name__=="__main__":
-    if(len(sys.argv)<6):
-        print("Usage: python run_model.py [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [gen_lr] [disc_lr]")
+    if(len(sys.argv)<7):
+        print("Usage: python run_model.py [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [loss] [gen_lr] [disc_lr]")
         print("(gen_lr and disc_lr are optional)")
     else:
-        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5],
-             float(sys.argv[6]) if len(sys.argv)>6 else 1e-4,
-             float(sys.argv[7]) if len(sys.argv)>7 else 1e-3)
+        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5], sys.argv[6],
+             float(sys.argv[7]) if len(sys.argv)>7 else 1e-4,
+             float(sys.argv[8]) if len(sys.argv)>8 else 1e-3)
