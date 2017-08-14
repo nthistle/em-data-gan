@@ -8,10 +8,8 @@ from keras.layers.convolutional import MaxPooling3D, Conv3D, Conv3DTranspose, Up
 from keras.models import Sequential
 from keras_adversarial import AdversarialModel, simple_gan
 from keras_adversarial import normal_latent_sampling, AdversarialOptimizerSimultaneous
-from keras.callbacks import Callback
 import util
 from keras.optimizers import Adam
-
 
 # class debugprint(Callback):
 #
@@ -82,10 +80,18 @@ def train_em_gan(adversarial_optimizer,
 
     #dbg = debugprint()
 
+
+    zsamples = np.random.normal(size=(5, latent_dim))
+
     sample_generator = util.h5_block_generator(h5_filename, h5_dataset_path, sample_shape, [1,0,0,1])
 
-    model.fit_generator(sample_generator, 16, 5,
-                        verbose=verbose,
+    def generator_sampler():
+        return generator.predict(zsamples)
+
+    sampler = util.SampleEM("/home/thistlethwaiten/testgan",generator_sampler)
+
+    model.fit_generator(sample_generator, 3, 5,
+                        verbose=verbose,callbacks=[sampler],
                         validation_data=sample_generator, validation_steps=16)
 
     # model = Sequential()
@@ -112,7 +118,8 @@ def main():
                  Adam(1e-4, decay=1e-4),
                  Adam(1e-3, decay=1e-4),
                  latent_dim,
-                 "/home/thistlethwaiten/cremi-data/sample_A_20160501.hdf","/volumes/raw", input_shape)
+                 "/home/thistlethwaiten/cremi-data/sample_A_20160501.hdf","/volumes/raw", input_shape,
+                 verbose=0)
 
 
 if __name__=="__main__":
