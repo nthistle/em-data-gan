@@ -81,8 +81,8 @@ def train_em_gan(adversarial_optimizer,
                         verbose=verbose, callbacks=[sampler],
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
 
-    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr) + "_" + str(disc_opt.lr) + ".h5")
-    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr) + "_" + str(disc_opt.lr) + ".h5")
+    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr.value()) + "_" + str(disc_opt.lr.value()) + ".h5")
+    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + str(gen_opt.lr.value()) + "_" + str(disc_opt.lr.value()) + ".h5")
 
 
 def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr):
