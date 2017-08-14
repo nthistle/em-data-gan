@@ -11,11 +11,6 @@ class SampleEM(Callback):
         self.image_path = image_path
         self.generator = generator
 
-    def on_epoch_begin(self, epoch, logs=None):
-        if(epoch==0):
-            print("(begin)")
-            self.on_epoch_end(epoch, logs)
-
     def on_epoch_end(self, epoch, logs=None):
         if not os.path.isdir(self.image_path):
             os.mkdir(self.image_path)
