@@ -67,10 +67,7 @@ def train_em_gan(adversarial_optimizer,
     model.adversarial_compile(adversarial_optimizer=adversarial_optimizer,
                               player_optimizers=[gen_opt, disc_opt],
                               loss=loss)
-
-    #dbg = debugprint()
-
-
+    
     zsamples = np.random.normal(size=(5, latent_dim))
 
     sample_generator = util.h5_block_generator(h5_filename, h5_dataset_path, sample_shape, [1,0,0,1])
@@ -93,8 +90,7 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc
 
     generator = em_generator(latent_dim, input_shape)
     discriminator = em_discriminator(input_shape)
-    #print(discriminator.summary())
-    #print(generator.summary())
+
     train_em_gan(AdversarialOptimizerSimultaneous(),
                  generator, discriminator,
                  Adam(gen_lr),
@@ -102,7 +98,7 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, gen_lr, disc
                  latent_dim,
                  file_source,"/volumes/raw", input_shape,
                  output_directory,
-                 verbose=verbose)
+                 verbose=verbose, epochs=epochs, per_epoch=per_epoch)
 
 
 if __name__=="__main__":
