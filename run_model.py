@@ -4,6 +4,7 @@ from keras.layers import Reshape, Flatten, Activation
 from keras.layers.core import Dense, Dropout
 from keras.layers.convolutional import Conv3D, Conv3DTranspose, UpSampling3D
 from keras.models import Sequential
+from keras.layers.advanced_activations import LeakyReLU
 from keras_adversarial import AdversarialModel, simple_gan
 from keras_adversarial import normal_latent_sampling, AdversarialOptimizerSimultaneous
 import util
@@ -38,6 +39,48 @@ def em_discriminator(input_shape):
     disc.add(Dense(1))
     disc.add(Activation("sigmoid"))
     return disc
+
+
+def em_generator_2(latent_dim, input_shape):
+    model = Sequential()
+    #model.add(Dense(784, input_shape=(latent_dim,), activation="relu"))
+    model.add(Dense(1728, input_shape=(latent_dim,)))
+    model.add(LeakyReLU(0.2))
+    model.add(Reshape([6,6,3,16]))
+    model.add(UpSampling3D((2,2,2)))
+    model.add(Conv3DTranspose(64, (5,5,3)))
+    model.add(LeakyReLU(0.2))
+    model.add(Conv3DTranspose(32, (5,5,3)))
+    model.add(LeakyReLU(0.2))
+    model.add(Conv3DTranspose(16, (5,5,3)))
+    model.add(LeakyReLU(0.2))
+    model.add(Conv3DTranspose(16, (3,3,3)))
+    model.add(LeakyReLU(0.2))
+    model.add(Conv3D(8, (3,3,3)))
+    model.add(LeakyReLU(0.2))
+    model.add(Conv3D(1, (1,1,1), activation="sigmoid"))
+    return model
+
+def em_discriminator_2(input_shape):
+    disc = Sequential()
+    disc.add(Conv3D(128, (5,5,3), input_shape=(input_shape+(1,))))
+    disc.add(LeakyReLU(0.2))
+    #disc.add(Dropout(0.2))
+    disc.add(Conv3D(64, (3,3,3)))
+    disc.add(LeakyReLU(0.2))
+    #disc.add(Dropout(0.2))
+    disc.add(Conv3D(32, (3,3,3)))
+    disc.add(LeakyReLU(0.2))
+    disc.add(Conv3D(8, (1,1,1)))
+    disc.add(LeakyReLU(0.2))
+    disc.add(Flatten())
+    disc.add(Dense(8))
+    disc.add(LeakyReLU(0.2))
+    disc.add(Dense(1))
+    disc.add(Activation("sigmoid"))
+    return disc
+
+
 
 def train_em_gan(adversarial_optimizer,
                  generator, discriminator, gen_opt, disc_opt,
