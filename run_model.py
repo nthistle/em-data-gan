@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import sys
 from keras.layers import Reshape, Flatten, Activation
 from keras.layers.core import Dense, Dropout
@@ -120,9 +121,12 @@ def train_em_gan(adversarial_optimizer,
 
     sampler = util.SampleEM(output_directory,generator_sampler)
 
-    model.fit_generator(sample_generator, per_epoch, epochs=epochs,
+    history = model.fit_generator(sample_generator, per_epoch, epochs=epochs,
                         verbose=verbose, callbacks=[sampler],
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
+
+    df = pd.DataFrame(history.history)
+    df.to_csv("history.csv")
 
     discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + id + ".h5")
     generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + id +".h5")
