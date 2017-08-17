@@ -2,7 +2,25 @@ import h5py
 import numpy as np
 import os
 from keras.callbacks import Callback
+from scipy.misc import imresize
 from PIL import Image
+
+#block should be of shape (24,24,12)
+def format_block_to_slices(data_block):
+    arr = np.full((26,151), 0.999)
+    for i in range(6):
+        t = data_block[:,:,2*i].reshape((24,24)) # gets rid of trailing dim of (1,)
+        arr[1:25,1+25*i:25+25*i] = t
+    return arr
+
+
+#data blocks should be of shape (x,24,24,12)
+def format_blocks_nice(data_blocks):
+    img = np.full((26*data_blocks.shape[0],151), 0.999)
+    for i in range(data_blocks.shape[0]):
+        img[26*i:26+26*i,:] = format_block_to_slices(data_blocks[i])
+    return Image.fromarray(imresize((256*img).astype(np.uint8), (3*26*data_blocks.shape[0], 3*151)))
+
 
 class SampleEM(Callback):
 
