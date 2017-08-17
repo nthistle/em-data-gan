@@ -19,7 +19,7 @@ def format_blocks_nicely(data_blocks):
     img = np.full((26*data_blocks.shape[0],151), 0.999)
     for i in range(data_blocks.shape[0]):
         img[26*i:26+26*i,:] = format_block_to_slices(data_blocks[i])
-    return Image.fromarray(imresize((256*img).astype(np.uint8), (3*26*data_blocks.shape[0], 3*151)))
+    return Image.fromarray(imresize((np.clip(256*img,0,255)).astype(np.uint8), (3*26*data_blocks.shape[0], 3*151)))
 
 
 class SampleEM(Callback):
