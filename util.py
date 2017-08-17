@@ -15,7 +15,7 @@ def format_block_to_slices(data_block):
 
 
 #data blocks should be of shape (x,24,24,12)
-def format_blocks_nice(data_blocks):
+def format_blocks_nicely(data_blocks):
     img = np.full((26*data_blocks.shape[0],151), 0.999)
     for i in range(data_blocks.shape[0]):
         img[26*i:26+26*i,:] = format_block_to_slices(data_blocks[i])
@@ -40,14 +40,15 @@ class SampleEM(Callback):
             print(k,logs[k])
         print("")
 
-        target_dir = self.image_path + ("/epoch_%02d"%epoch)
-        if not os.path.isdir(target_dir):
-            os.mkdir(target_dir)
-        for i in range(len(dat)):
-            img = Image.fromarray((255*dat[i][:,:,0,0]).astype(np.uint8))
-            img.save(target_dir + "/%02d_slice0.png"%i)
-            img = Image.fromarray((255*dat[i][:,:,6,0]).astype(np.uint8))
-            img.save(target_dir + "/%02d_slice6.png"%i)
+        format_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
+        #target_dir = self.image_path + ("/epoch_%02d"%epoch)
+        #if not os.path.isdir(target_dir):
+        #    os.mkdir(target_dir)
+        #for i in range(len(dat)):
+        #    img = Image.fromarray((255*dat[i][:,:,0,0]).astype(np.uint8))
+        #    img.save(target_dir + "/%02d_slice0.png"%i)
+        #    img = Image.fromarray((255*dat[i][:,:,6,0]).astype(np.uint8))
+        #    img.save(target_dir + "/%02d_slice6.png"%i)
 
 
 #credit for lheinric for most of this code
