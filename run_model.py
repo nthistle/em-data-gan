@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers.advanced_activations import LeakyReLU
 from keras_adversarial import AdversarialModel, simple_gan
 from keras_adversarial import normal_latent_sampling, AdversarialOptimizerSimultaneous
+from keras_adversarial.legacy import l1l2
 import util
 from keras.optimizers import Adam
 
@@ -42,40 +43,40 @@ def em_discriminator(input_shape):
     return disc
 
 
-def em_generator_2(latent_dim, input_shape):
+def em_generator_2(latent_dim, input_shape, reg = lambda: l1l2(1e-5, 1e-5)):
     model = Sequential()
     #model.add(Dense(784, input_shape=(latent_dim,), activation="relu"))
-    model.add(Dense(1728, input_shape=(latent_dim,)))
+    model.add(Dense(1728, input_shape=(latent_dim,), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
     model.add(Reshape([6,6,3,16]))
     model.add(UpSampling3D((2,2,2)))
-    model.add(Conv3DTranspose(64, (5,5,3)))
+    model.add(Conv3DTranspose(64, (5,5,3), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
-    model.add(Conv3DTranspose(32, (5,5,3)))
+    model.add(Conv3DTranspose(32, (5,5,3), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
-    model.add(Conv3DTranspose(16, (5,5,3)))
+    model.add(Conv3DTranspose(16, (5,5,3), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
-    model.add(Conv3DTranspose(16, (3,3,3)))
+    model.add(Conv3DTranspose(16, (3,3,3), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
-    model.add(Conv3D(8, (3,3,3)))
+    model.add(Conv3D(8, (3,3,3), kernel_regularizer=reg()))
     model.add(LeakyReLU(0.2))
-    model.add(Conv3D(1, (1,1,1), activation="sigmoid"))
+    model.add(Conv3D(1, (1,1,1), activation="sigmoid", kernel_regularizer=reg()))
     return model
 
-def em_discriminator_2(input_shape):
+def em_discriminator_2(input_shape, reg = lambda: l1l2(1e-6, 1e-6)):
     disc = Sequential()
-    disc.add(Conv3D(128, (5,5,3), input_shape=(input_shape+(1,))))
+    disc.add(Conv3D(128, (5,5,3), input_shape=(input_shape+(1,)), kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
     #disc.add(Dropout(0.2))
-    disc.add(Conv3D(64, (3,3,3)))
+    disc.add(Conv3D(64, (3,3,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
     #disc.add(Dropout(0.2))
-    disc.add(Conv3D(32, (3,3,3)))
+    disc.add(Conv3D(32, (3,3,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
-    disc.add(Conv3D(8, (1,1,1)))
+    disc.add(Conv3D(8, (1,1,1), kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
     disc.add(Flatten())
-    disc.add(Dense(8))
+    disc.add(Dense(8), kernel_regularizer=reg())
     disc.add(LeakyReLU(0.2))
     disc.add(Dense(1))
     disc.add(Activation("sigmoid"))
@@ -95,13 +96,13 @@ def train_em_gan(adversarial_optimizer,
 
     if(verbose>=1):
         print("="*20+" Generator "+"="*20)
-        print(generator.summary())
+        generator.summary()
         print("")
         print("="*20+" Discriminator "+"="*20)
-        print(discriminator.summary())
+        discriminator.summary()
         print("")
         print("="*20+" GAN "+"="*20)
-        print(gan.summary())
+        gan.summary()
         print("")
 
     model = AdversarialModel(base_model=gan,
@@ -136,8 +137,8 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr
     latent_dim = 300
     input_shape = (24, 24, 12)
 
-    generator = em_generator(latent_dim, input_shape)
-    discriminator = em_discriminator(input_shape)
+    generator = em_generator_2(latent_dim, input_shape)
+    discriminator = em_discriminator_2(input_shape)
 
     train_em_gan(AdversarialOptimizerSimultaneous(),
                  generator, discriminator,
