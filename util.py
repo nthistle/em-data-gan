@@ -22,6 +22,23 @@ def format_blocks_nicely(data_blocks):
     return Image.fromarray(imresize((np.clip(256*img,0,255)).astype(np.uint8), (3*26*data_blocks.shape[0], 3*151)))
 
 
+#block should be of shape (64,64,7)
+def format_large_block_to_slices(data_block):
+    arr = np.full((66,456), 0.999)
+    for i in range(7):
+        t = data_block[:,:,i].reshape((64,64)) # gets rid of trailing dim of (1,)
+        arr[1:65,1+65*i:65+65*i] = t
+    return arr
+
+
+#data blocks should be of shape (x,24,24,12)
+def format_large_blocks_nicely(data_blocks):
+    img = np.full((66*data_blocks.shape[0],456), 0.999)
+    for i in range(data_blocks.shape[0]):
+        img[66*i:66+66*i,:] = format_large_block_to_slices(data_blocks[i])
+    return Image.fromarray(imresize((np.clip(256*img,0,255)).astype(np.uint8), (66*data_blocks.shape[0], 456)))
+
+
 class SampleEM(Callback):
 
     def __init__(self, image_path, generator):
