@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 import sys
 from keras.layers import Reshape, Flatten, Activation
 from keras.layers.core import Dense, Dropout
@@ -13,75 +14,54 @@ import util
 from keras.optimizers import Adam
 
 
-def em_generator(latent_dim, input_shape):
+def em_generator(latent_dim, input_shape, leaky_alpha = 6*[0.2],reg = lambda: l1l2(1e-7, 1e-7)):
     model = Sequential()
-    #model.add(Dense(784, input_shape=(latent_dim,), activation="relu"))
-    model.add(Dense(1728, input_shape=(latent_dim,), activation="relu"))
-    model.add(Reshape([6,6,3,16]))
-    model.add(UpSampling3D((2,2,2)))
-    model.add(Conv3DTranspose(64, (5,5,3), activation="relu"))
-    model.add(Conv3DTranspose(32, (5,5,3), activation="relu"))
-    model.add(Conv3DTranspose(16, (5,5,3), activation="relu"))
-    model.add(Conv3DTranspose(16, (3,3,3), activation="relu"))
-    model.add(Conv3D(8, (3,3,3), activation="relu"))
-    model.add(Conv3D(1, (1,1,1), activation="sigmoid"))
-    return model
 
-def em_discriminator(input_shape):
-    disc = Sequential()
-    disc.add(Conv3D(128, (5,5,3), input_shape=(input_shape+(1,)), activation="relu"))
-    #disc.add(Dropout(0.2))
-    disc.add(Conv3D(64, (3,3,3), activation="relu"))
-    #disc.add(Dropout(0.2))
-    disc.add(Conv3D(32, (3,3,3), activation="relu"))
-    disc.add(Conv3D(8, (1,1,1), activation="relu"))
-    disc.add(Flatten())
-    disc.add(Dense(8))
-    disc.add(Activation("relu"))
-    disc.add(Dense(1))
-    disc.add(Activation("sigmoid"))
-    return disc
-
-
-def em_generator_2(latent_dim, input_shape, reg = lambda: l1l2(1e-5, 1e-5)):
-    model = Sequential()
-    #model.add(Dense(784, input_shape=(latent_dim,), activation="relu"))
     model.add(Dense(1728, input_shape=(latent_dim,), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[0]))
     model.add(Reshape([6,6,3,16]))
     model.add(UpSampling3D((2,2,2)))
+
     model.add(Conv3DTranspose(64, (5,5,3), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[1]))
+
     model.add(Conv3DTranspose(32, (5,5,3), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[2]))
+
     model.add(Conv3DTranspose(16, (5,5,3), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[3]))
+
     model.add(Conv3DTranspose(16, (3,3,3), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[4]))
+
     model.add(Conv3D(8, (3,3,3), kernel_regularizer=reg()))
-    model.add(LeakyReLU(0.2))
+    model.add(LeakyReLU(leaky_alpha[5]))
+
     model.add(Conv3D(1, (1,1,1), activation="sigmoid", kernel_regularizer=reg()))
     return model
 
-def em_discriminator_2(input_shape, reg = lambda: l1l2(1e-6, 1e-6)):
+def em_discriminator(input_shape, leaky_alpha = 5*[0.2], reg = lambda: l1l2(1e-7, 1e-7)):
     disc = Sequential()
+
     disc.add(Conv3D(128, (5,5,3), input_shape=(input_shape+(1,)), kernel_regularizer=reg()))
-    disc.add(LeakyReLU(0.2))
-    #disc.add(Dropout(0.2))
+    disc.add(LeakyReLU(leaky_alpha[0]))
+
     disc.add(Conv3D(64, (3,3,3), kernel_regularizer=reg()))
-    disc.add(LeakyReLU(0.2))
-    #disc.add(Dropout(0.2))
+    disc.add(LeakyReLU(leaky_alpha[1]))
+
     disc.add(Conv3D(32, (3,3,3), kernel_regularizer=reg()))
-    disc.add(LeakyReLU(0.2))
+    disc.add(LeakyReLU(leaky_alpha[2]))
+
     disc.add(Conv3D(8, (1,1,1), kernel_regularizer=reg()))
-    disc.add(LeakyReLU(0.2))
+    disc.add(LeakyReLU(leaky_alpha[3]))
+
     disc.add(Flatten())
     disc.add(Dense(8, kernel_regularizer=reg()))
-    disc.add(LeakyReLU(0.2))
+    disc.add(LeakyReLU(leaky_alpha[4]))
+
     disc.add(Dense(1))
     disc.add(Activation("sigmoid"))
     return disc
-
 
 
 def train_em_gan(adversarial_optimizer,
@@ -127,7 +107,7 @@ def train_em_gan(adversarial_optimizer,
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
 
     df = pd.DataFrame(history.history)
-    df.to_csv("history.csv")
+    df.to_csv(os.path.join(output_directory, "history.csv"))
 
     discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + id + ".h5")
     generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + id +".h5")
@@ -137,8 +117,8 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr
     latent_dim = 300
     input_shape = (24, 24, 12)
 
-    generator = em_generator_2(latent_dim, input_shape)
-    discriminator = em_discriminator_2(input_shape)
+    generator = em_generator(latent_dim, input_shape)
+    discriminator = em_discriminator(input_shape)
 
     train_em_gan(AdversarialOptimizerSimultaneous(),
                  generator, discriminator,
