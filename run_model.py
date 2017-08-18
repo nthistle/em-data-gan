@@ -76,7 +76,7 @@ def em_discriminator_2(input_shape, reg = lambda: l1l2(1e-6, 1e-6)):
     disc.add(Conv3D(8, (1,1,1), kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
     disc.add(Flatten())
-    disc.add(Dense(8), kernel_regularizer=reg())
+    disc.add(Dense(8, kernel_regularizer=reg()))
     disc.add(LeakyReLU(0.2))
     disc.add(Dense(1))
     disc.add(Activation("sigmoid"))
