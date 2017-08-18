@@ -70,11 +70,11 @@ def train_em_gan(adversarial_optimizer,
                  h5_filename, h5_dataset_path, sample_shape,
                  output_directory,
                  verbose=1, loss='mean_squared_error',
-                 epochs=10, per_epoch=100, id="em-gan"):
+                 epochs=10, per_epoch=100, r_id="em-gan"):
 
     gan = simple_gan(generator, discriminator, normal_latent_sampling((latent_dim,)))
 
-    if(verbose>=1):
+    if verbose>=1:
         print("="*20+" Generator "+"="*20)
         generator.summary()
         print("")
@@ -109,8 +109,8 @@ def train_em_gan(adversarial_optimizer,
     df = pd.DataFrame(history.history)
     df.to_csv(os.path.join(output_directory, "history.csv"))
 
-    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + id + ".h5")
-    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + id +".h5")
+    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
+    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
 
 
 def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr):
@@ -128,11 +128,11 @@ def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr
                  file_source,"/volumes/raw", input_shape,
                  output_directory,
                  verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
-                 id=(str(gen_lr) + "_" + str(disc_lr)))
+                 r_id=(str(gen_lr) + "_" + str(disc_lr)))
 
 
 if __name__=="__main__":
-    if(len(sys.argv)<7):
+    if len(sys.argv)<7:
         print("Usage: python run_model.py [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [loss] [gen_lr] [disc_lr]")
         print("(gen_lr and disc_lr are optional)")
     else:
