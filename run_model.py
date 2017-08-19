@@ -175,6 +175,10 @@ def train_em_gan(adversarial_optimizer,
     discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
     generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
 
+    del model
+    del discriminator
+    del generator
+
 
 def print_model_parameters(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg):
     print("Parameters:")
