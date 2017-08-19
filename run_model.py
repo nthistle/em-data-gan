@@ -133,7 +133,8 @@ def train_em_gan(adversarial_optimizer,
                  h5_filename, h5_dataset_path, sample_shape,
                  output_directory,
                  verbose=1, loss='mean_squared_error',
-                 epochs=10, per_epoch=100, r_id="em-gan"):
+                 epochs=10, per_epoch=100, r_id="em-gan",
+                 is_large_model=False):
 
     gan = simple_gan(generator, discriminator, normal_latent_sampling((latent_dim,)))
 
@@ -163,7 +164,7 @@ def train_em_gan(adversarial_optimizer,
     def generator_sampler():
         return generator.predict(zsamples)
 
-    sampler = util.SampleEM(output_directory,generator_sampler)
+    sampler = util.SampleEM(output_directory,generator_sampler,is_large_model)
 
     history = model.fit_generator(sample_generator, per_epoch, epochs=epochs,
                         verbose=verbose, callbacks=[sampler],
@@ -215,7 +216,8 @@ def main(is_large_model, file_source, epochs, per_epoch, verbose, output_directo
                      file_source, "/volumes/raw", input_shape,
                      output_directory,
                      verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
-                     r_id=("large_" + str(gen_lr) + "_" + str(disc_lr)))
+                     r_id=("large_" + str(gen_lr) + "_" + str(disc_lr)),
+                     is_large_model=True)
 
     else:
         print("Initiating small model...")
