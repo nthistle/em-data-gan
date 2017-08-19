@@ -41,10 +41,11 @@ def format_large_blocks_nicely(data_blocks):
 
 class SampleEM(Callback):
 
-    def __init__(self, image_path, generator):
+    def __init__(self, image_path, generator, is_large=False):
         super().__init__()
         self.image_path = image_path
         self.generator = generator
+        self.is_large = is_large
 
     def on_epoch_end(self, epoch, logs=None):
         if not os.path.isdir(self.image_path):
@@ -57,7 +58,10 @@ class SampleEM(Callback):
             print(k,logs[k])
         print("")
 
-        format_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
+        if self.is_large:
+            format_large_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
+        else:
+            format_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
         #target_dir = self.image_path + ("/epoch_%02d"%epoch)
         #if not os.path.isdir(target_dir):
         #    os.mkdir(target_dir)
