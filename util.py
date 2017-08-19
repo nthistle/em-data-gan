@@ -38,6 +38,20 @@ def format_large_blocks_nicely(data_blocks):
         img[66*i:66+66*i,:] = format_large_block_to_slices(data_blocks[i])
     return Image.fromarray(imresize((np.clip(256*img,0,255)).astype(np.uint8), (66*data_blocks.shape[0], 456)))
 
+class SaveModel(Callback):
+
+    # base name should include directory, and beginning of file name
+    # _[epoch].h5 will be postpended before saving
+    def __init__(self, model_to_save, base_name, freq=5):
+        super().__init__()
+        self.model_to_save = model_to_save
+        self.base_name = base_name
+        self.freq = freq
+
+    def on_epoch_end(self, epoch, logs=None):
+        if (epoch+1)%self.freq==0:
+            self.model_to_save.save(self.base_name + "_" + str(epoch) + ".h5")
+
 
 class SampleEM(Callback):
 

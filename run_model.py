@@ -165,9 +165,11 @@ def train_em_gan(adversarial_optimizer,
         return generator.predict(zsamples)
 
     sampler = util.SampleEM(output_directory,generator_sampler,is_large_model)
+    gen_saver = util.SaveModel(discriminator, os.path.join(output_directory, "generator"))
+    disc_saver = util.SaveModel(generator, os.path.join(output_directory, "generator"))
 
     history = model.fit_generator(sample_generator, per_epoch, epochs=epochs,
-                        verbose=verbose, callbacks=[sampler],
+                        verbose=verbose, callbacks=[sampler, gen_saver, disc_saver],
                         validation_data=sample_generator, validation_steps=(per_epoch//5))
 
     df = pd.DataFrame(history.history)
