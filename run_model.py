@@ -176,29 +176,54 @@ def train_em_gan(adversarial_optimizer,
     generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
 
 
-def main(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr):
-    latent_dim = 300
-    input_shape = (24, 24, 12)
+def main(is_large_model, file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg):
 
-    generator = em_generator(latent_dim, input_shape)
-    discriminator = em_discriminator(input_shape)
+    if is_large_model:
+        print("Initiating large model...")
 
-    train_em_gan(AdversarialOptimizerSimultaneous(),
-                 generator, discriminator,
-                 Adam(gen_lr),
-                 Adam(disc_lr),
-                 latent_dim,
-                 file_source,"/volumes/raw", input_shape,
-                 output_directory,
-                 verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
-                 r_id=(str(gen_lr) + "_" + str(disc_lr)))
+        latent_dim = 600
+        input_shape = (64, 64, 7)
+
+        generator = em_generator_large(latent_dim, input_shape, reg = lambda: l1l2(gen_reg, gen_reg))
+        discriminator = em_discriminator_large(input_shape, reg = lambda: l1l2(disc_reg, disc_reg))
+
+        train_em_gan(AdversarialOptimizerSimultaneous(),
+                     generator, discriminator,
+                     Adam(gen_lr),
+                     Adam(disc_lr),
+                     latent_dim,
+                     file_source, "/volumes/raw", input_shape,
+                     output_directory,
+                     verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
+                     r_id=("large_" + str(gen_lr) + "_" + str(disc_lr)))
+
+    else:
+        print("Initiating small model...")
+
+        latent_dim = 300
+        input_shape = (24, 24, 12)
+
+        generator = em_generator(latent_dim, input_shape, reg = lambda: l1l2(gen_reg, gen_reg))
+        discriminator = em_discriminator(input_shape, reg = lambda: l1l2(disc_reg, disc_reg))
+
+        train_em_gan(AdversarialOptimizerSimultaneous(),
+                     generator, discriminator,
+                     Adam(gen_lr),
+                     Adam(disc_lr),
+                     latent_dim,
+                     file_source,"/volumes/raw", input_shape,
+                     output_directory,
+                     verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
+                     r_id=(str(gen_lr) + "_" + str(disc_lr)))
 
 
 if __name__=="__main__":
-    if len(sys.argv)<7:
-        print("Usage: python run_model.py [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [loss] [gen_lr] [disc_lr]")
+    if len(sys.argv)<8:
+        print("Usage: python run_model.py [large|small] [input_em_file] [epochs] [per_epoch] [verbose] [output_directory] [loss] [gen_lr] [disc_lr] [gen_reg] [disc_reg]")
         print("(gen_lr and disc_lr are optional)")
     else:
-        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5], sys.argv[6],
-             float(sys.argv[7]) if len(sys.argv)>7 else 1e-4,
-             float(sys.argv[8]) if len(sys.argv)>8 else 1e-3)
+        main(sys.argv[1].lower()[0]=="l", sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]), sys.argv[6], sys.argv[7],
+             float(sys.argv[8]) if len(sys.argv)>8 else 1e-4,
+             float(sys.argv[9]) if len(sys.argv)>9 else 1e-3,
+             float(sys.argv[10]) if len(sys.argv)>10 else 1e-6,
+             float(sys.argv[11]) if len(sys.argv)>11 else 1e-6)
