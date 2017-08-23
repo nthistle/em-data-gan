@@ -165,8 +165,8 @@ def train_em_gan(adversarial_optimizer,
         return generator.predict(zsamples)
 
     sampler = util.SampleEM(output_directory,generator_sampler,is_large_model)
-    gen_saver = util.SaveModel(discriminator, os.path.join(output_directory, "generator"))
-    disc_saver = util.SaveModel(generator, os.path.join(output_directory, "generator"))
+    gen_saver = util.SaveModel(generator, os.path.join(output_directory, "generator"))
+    disc_saver = util.SaveModel(discriminator, os.path.join(output_directory, "discriminator"))
 
     history = model.fit_generator(sample_generator, per_epoch, epochs=epochs,
                         verbose=verbose, callbacks=[sampler, gen_saver, disc_saver],
