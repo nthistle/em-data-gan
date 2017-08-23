@@ -218,7 +218,7 @@ def main(is_large_model, file_source, epochs, per_epoch, verbose, output_directo
                      file_source, "/volumes/raw", input_shape,
                      output_directory,
                      verbose=verbose, epochs=epochs, per_epoch=per_epoch, loss=loss,
-                     r_id=("large_" + str(gen_lr) + "_" + str(disc_lr)),
+                     r_id=("large_" + str(gen_lr) + "_" + str(disc_lr) + "_" + str(gen_reg) + "_" + str(disc_reg)),
                      is_large_model=True)
 
     else:
