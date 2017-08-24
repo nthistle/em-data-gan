@@ -97,18 +97,18 @@ def em_generator_large(latent_dim, input_shape, leaky_alpha = 7*[0.2], reg = lam
 def em_discriminator_large(input_shape, leaky_alpha = 7*[0.2], reg = lambda: l1l2(1e-7, 1e-7)):
     disc = Sequential()
 
-    #disc.add(UpSampling3D((1,1,2), input_shape=(input_shape+(1,))))
+    disc.add(UpSampling3D((1,1,2), input_shape=(input_shape+(1,))))
 
-    disc.add(Conv3D(128, (7,7,2), input_shape=(input_shape+(1,)), kernel_regularizer=reg()))
+    disc.add(Conv3D(128, (7,7,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(leaky_alpha[0]))
 
-    disc.add(Conv3D(64, (5,5,2), kernel_regularizer=reg()))
+    disc.add(Conv3D(64, (5,5,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(leaky_alpha[1]))
 
-    disc.add(Conv3D(64, (5,5,2), kernel_regularizer=reg()))
+    disc.add(Conv3D(64, (5,5,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(leaky_alpha[2]))
 
-    disc.add(Conv3D(64, (3,3,2), kernel_regularizer=reg()))
+    disc.add(Conv3D(64, (3,3,3), kernel_regularizer=reg()))
     disc.add(LeakyReLU(leaky_alpha[3]))
 
     disc.add(Conv3D(32, (3,3,1), kernel_regularizer=reg()))
