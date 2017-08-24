@@ -87,7 +87,11 @@ class SampleEM(Callback):
 
 
 #credit for lheinric for most of this code
-def h5_block_generator(filename, path, sample_shape, expected_output, batch_size=16):
+def h5_block_generator(filename, path, sample_shape, expected_output, batch_size=16, seed=None):
+
+    if seed:
+        np.random.seed(seed)
+
     ds = h5py.File(filename, "r")[path]
 
     while True:
