@@ -3,6 +3,7 @@ import numpy as np
 import os
 from keras.callbacks import Callback
 from scipy.misc import imresize
+from scipy.ndimage.filters import gaussian_filter
 from PIL import Image
 
 #block should be of shape (24,24,12)
@@ -86,9 +87,42 @@ class SampleEM(Callback):
         #    img.save(target_dir + "/%02d_slice6.png"%i)
 
 
+def h5_boundary_block_generator(data_filename, data_path, bound_filename, bound_path, sample_shape, expected_output, sigma=2.5, batch_size=16, seed=None):
+    if seed:
+        np.random.seed(seed)
+
+    data_ds = h5py.File(data_filename, "r")[data_path]
+    bound_ds = h5py.File(bound_filename, "r")[bound_path]
+
+    boundaries = 255.*np.array(bound_ds)
+    boundaries_smooth = gaussian_filter(boundaries, [0.1*sigma, sigma, sigma])
+
+    while True:
+        batch = np.empty((batch_size,) + (sample_shape[2], sample_shape[0], sample_shape[1]) + (2,))
+
+        # assume dataset stores like (z,y,x) (although it might actually be zxy, doesn't matter)
+        z_start = np.random.random_integers(0, data_ds.shape[0] - sample_shape[2] - 1, batch_size)
+        y_start = np.random.random_integers(0, data_ds.shape[1] - sample_shape[1] - 1, batch_size)
+        x_start = np.random.random_integers(0, data_ds.shape[2] - sample_shape[0] - 1, batch_size)
+
+        for k in range(batch_size):
+            data_ds.read_direct(batch,
+                           np.s_[z_start[k]:z_start[k] + sample_shape[2],
+                           y_start[k]:y_start[k] + sample_shape[1],
+                           x_start[k]:x_start[k] + sample_shape[0]],
+                           np.s_[k, :, :, :, 0])
+
+            batch[k,:,:,:,1] = boundaries_smooth[z_start[k]:z_start[k] + sample_shape[2],
+                               y_start[k]:y_start[k] + sample_shape[1],
+                               x_start[k]:x_start[k] + sample_shape[0]]
+
+        batch = np.swapaxes(batch, 1, 3)
+
+        yield ([batch/255.], [np.ones((batch_size, 1)) if x==1 else np.zeros((batch_size, 1)) for x in expected_output])
+
+
 #credit for lheinric for most of this code
 def h5_block_generator(filename, path, sample_shape, expected_output, batch_size=16, seed=None):
-
     if seed:
         np.random.seed(seed)
 
