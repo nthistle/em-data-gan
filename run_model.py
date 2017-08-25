@@ -67,25 +67,12 @@ def train_em_gan(adversarial_optimizer,
     del generator
 
 
-def print_model_parameters(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg):
-    print("Parameters:")
-    print("file source =",file_source)
-    print("epochs =",epochs)
-    print("per_epoch =",per_epoch)
-    print("verbose =",verbose)
-    print("output_directory =",output_directory)
-    print("loss =",loss)
-    print("gen_lr =",gen_lr)
-    print("disc_lr =",disc_lr)
-    print("gen_reg =",gen_reg)
-    print("disc_reg =",disc_reg)
-
 
 def main(is_large_model, file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg):
 
     if is_large_model:
         print("Initiating large model...")
-        print_model_parameters(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg)
+        util.print_model_parameters(file_source, epochs, per_epoch, verbose, output_directory, loss, gen_lr, disc_lr, gen_reg, disc_reg)
         sys.stdout.flush()
 
         latent_dim = 600
