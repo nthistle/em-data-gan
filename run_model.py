@@ -175,8 +175,8 @@ def train_em_gan(adversarial_optimizer,
     df = pd.DataFrame(history.history)
     df.to_csv(os.path.join(output_directory, "history.csv"))
 
-    discriminator.save("gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
-    generator.save("gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5")
+    discriminator.save(os.path.join(output_directory, "gan_disc_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5"))
+    generator.save(os.path.join(output_directory, "gan_gen_" + str(epochs) + "_" + str(per_epoch) + "_" + r_id + ".h5"))
 
     del model
     del discriminator
