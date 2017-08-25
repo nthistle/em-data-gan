@@ -67,7 +67,6 @@ def print_model_summaries(generator, discriminator, gan):
 
 
 class SaveModel(Callback):
-
     # base name should include directory, and beginning of file name
     # _[epoch].h5 will be postpended before saving
     def __init__(self, model_to_save, base_name, freq=5):
@@ -83,35 +82,29 @@ class SaveModel(Callback):
 
 class SampleEM(Callback):
 
-    def __init__(self, image_path, generator, is_large=False):
+    def __init__(self, image_path, generator, is_large=False, info_print=False):
         super().__init__()
         self.image_path = image_path
         self.generator = generator
         self.is_large = is_large
+        self.info_print = info_print
 
     def on_epoch_end(self, epoch, logs=None):
         if not os.path.isdir(self.image_path):
             os.mkdir(self.image_path)
 
-        dat = self.generator() #assume dimensions of (size,24,24,12)
+        dat = self.generator()
 
-        print("="*15 + " EPOCH %d "%epoch + "="*15)
-        for k in logs:
-            print(k,logs[k])
-        print("")
+        if(self.info_print):
+            print("Epoch #%d "%epoch)
+            for k in logs:
+                print(k,logs[k])
+            print()
 
         if self.is_large:
             format_large_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
         else:
             format_blocks_nicely(dat).save(self.image_path + ("/epoch_%03d.png"%epoch))
-        #target_dir = self.image_path + ("/epoch_%02d"%epoch)
-        #if not os.path.isdir(target_dir):
-        #    os.mkdir(target_dir)
-        #for i in range(len(dat)):
-        #    img = Image.fromarray((255*dat[i][:,:,0,0]).astype(np.uint8))
-        #    img.save(target_dir + "/%02d_slice0.png"%i)
-        #    img = Image.fromarray((255*dat[i][:,:,6,0]).astype(np.uint8))
-        #    img.save(target_dir + "/%02d_slice6.png"%i)
 
 
 def h5_boundary_block_generator(data_filename, data_path, bound_filename, bound_path, sample_shape, expected_output, sigma=2.5, batch_size=16, seed=None):
