@@ -23,15 +23,7 @@ def train_em_gan(adversarial_optimizer,
     gan = simple_gan(generator, discriminator, normal_latent_sampling((latent_dim,)))
 
     if verbose>=1:
-        print("="*20+" Generator "+"="*20)
-        generator.summary()
-        print("")
-        print("="*20+" Discriminator "+"="*20)
-        discriminator.summary()
-        print("")
-        print("="*20+" GAN "+"="*20)
-        gan.summary()
-        print("")
+        util.print_model_summaries(generator, discriminator, gan)
 
     model = AdversarialModel(base_model=gan,
                              player_params=[generator.trainable_weights, discriminator.trainable_weights],

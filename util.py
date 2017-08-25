@@ -54,6 +54,18 @@ def print_model_parameters(file_source, epochs, per_epoch, verbose, output_direc
     print("disc_reg =",disc_reg)
 
 
+def print_model_summaries(generator, discriminator, gan):
+    print("="*20+" Generator "+"="*20)
+    generator.summary()
+    print("")
+    print("="*20+" Discriminator "+"="*20)
+    discriminator.summary()
+    print("")
+    print("="*20+" GAN "+"="*20)
+    gan.summary()
+    print("")
+
+
 class SaveModel(Callback):
 
     # base name should include directory, and beginning of file name
