@@ -1,6 +1,4 @@
-from keras.layers import Reshape, Flatten, Activation
-from keras.layers.core import Dense
-from keras.layers.convolutional import Conv3D, Conv3DTranspose, UpSampling3D
+from keras.layers import Conv3D, Conv3DTranspose, UpSampling3D, Dense, Reshape, Flatten, Activation, Input
 from keras.models import Sequential
 from keras.layers.advanced_activations import LeakyReLU
 from keras_adversarial.legacy import l1l2
@@ -86,6 +84,70 @@ def em_generator_large(latent_dim, input_shape, leaky_alpha = 7*[0.2], reg = lam
     return model
 
 def em_discriminator_large(input_shape, leaky_alpha = 7*[0.2], reg = lambda: l1l2(1e-7, 1e-7)):
+    disc = Sequential()
+
+    disc.add(UpSampling3D((1,1,2), input_shape=(input_shape+(1,))))
+
+    disc.add(Conv3D(128, (7,7,3), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[0]))
+
+    disc.add(Conv3D(64, (5,5,3), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[1]))
+
+    disc.add(Conv3D(64, (5,5,3), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[2]))
+
+    disc.add(Conv3D(64, (3,3,3), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[3]))
+
+    disc.add(Conv3D(32, (3,3,1), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[4]))
+
+    disc.add(Conv3D(16, (1,1,1), kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[5]))
+
+    disc.add(Flatten())
+    disc.add(Dense(16, kernel_regularizer=reg()))
+    disc.add(LeakyReLU(leaky_alpha[6]))
+
+    disc.add(Dense(1))
+    disc.add(Activation("sigmoid"))
+    return disc
+
+
+def em_generator_large_boundaries(latent_dim, input_shape, leaky_alpha = 7*[0.2], reg = lambda: l1l2(1e-7, 1e-7)):
+
+    input_layer = Input(shape=(latent_dim,))
+
+    l = Dense(3072, kernel_regularizer=reg())(input_layer)
+    l = LeakyReLU(leaky_alpha[0])(l)
+    l = Reshape([8,8,3,16])(l)
+    l = UpSampling3D((6,6,2))(l)
+
+    l = Conv3DTranspose(64, (7,7,3), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[1])(l)
+
+    l = Conv3DTranspose(32, (7,7,3), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[2])(l)
+
+    l = Conv3DTranspose(16, (5,5,3), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[3])(l)
+
+    l = Conv3DTranspose(16, (5,5,3), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[4])(l)
+
+    l = Conv3D(8, (3,3,5), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[5])(l)
+
+    l = Conv3D(8, (3,3,4), kernel_regularizer=reg())(l)
+    l = LeakyReLU(leaky_alpha[6])(l)
+
+    #TODO finish and add boundaries
+    model.add(Conv3D(1, (1,1,1), activation="sigmoid", kernel_regularizer=reg()))
+    return model
+
+#TODO add boundaries to discriminator
+def em_discriminator_large_boundaries(input_shape, leaky_alpha = 7*[0.2], reg = lambda: l1l2(1e-7, 1e-7)):
     disc = Sequential()
 
     disc.add(UpSampling3D((1,1,2), input_shape=(input_shape+(1,))))
